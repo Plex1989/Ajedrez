@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscripción al Torneo - Pixel Studio</title>
+    <title>Inscripción al Torneo - Pixel Studio Ajedrez</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&display=swap');
@@ -60,7 +60,7 @@
 
         label { font-weight: 800; display: block; margin-top: 18px; margin-bottom: 8px; color: #ffffff; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
         
-        input[type="text"], input[type="password"], select { 
+        input[type="text"], input[type="password"], input[type="number"], select { 
             width: 100%; 
             padding: 11px 14px; 
             border-radius: 10px; 
@@ -76,7 +76,7 @@
 
         select option { background-color: #0a0b10 !important; color: #ffffff !important; padding: 10px; }
 
-        input[type="text"]:focus, select:focus { border-color: #38bdf8 !important; outline: none; box-shadow: 0 0 16px rgba(56, 189, 248, 0.55); }
+        input:focus, select:focus { border-color: #38bdf8 !important; outline: none; box-shadow: 0 0 16px rgba(56, 189, 248, 0.55); }
 
         .caja-seguridad { 
             background: rgba(15, 23, 42, 0.6); 
@@ -193,10 +193,16 @@
 
         <div id="caja-nuevo-jugador" class="seccion-plegable" style="margin-top: 0;">
             <div style="font-size: 12px; font-weight: 800; color: #38bdf8; margin-bottom: 15px; text-transform: uppercase; text-align:center;">➕ Registro de Nuevo Jugador</div>
-            <p style="font-size: 11px; color:#94a3b8; text-align:center; margin-bottom: 15px; line-height: 1.5;">Ingresa tus datos para integrarte a la base de datos. El administrador validará tu perfil y te asignará tu ranking inicial.</p>
+            <p style="font-size: 11px; color:#94a3b8; text-align:center; margin-bottom: 15px; line-height: 1.5;">Ingresa tus datos para integrarte a la base de datos.</p>
             
             <input type="text" id="reg-nombre" placeholder="Nombre Completo" style="margin-bottom: 12px;">
-            <select id="reg-club" style="margin-bottom: 12px;"><option value="Sin Club">Cargando clubs...</option></select>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                <input type="number" id="reg-elo" placeholder="Elo FIDE (Ej. 1500)" style="flex: 1;">
+                <input type="text" id="reg-fide" placeholder="ID FIDE (Opcional)" style="flex: 1;">
+            </div>
+
+            <select id="reg-club" style="margin-bottom: 12px;"><option value="Sin Club">Cargando clubs/asociaciones...</option></select>
             <input type="password" id="reg-nip" maxlength="4" placeholder="Crea tu NIP de 4 dígitos (Ej. 1234)" style="margin-bottom: 15px;">
             
             <button class="btn-submit" style="margin-top:0; padding:12px;" onclick="registrarNuevoJugador()">Crear Perfil de Jugador</button>
@@ -239,7 +245,7 @@
 
                 <div id="tarjeta-pendiente-ranking" class="tarjeta-pendiente-ranking">
                     ⏳ <strong>Perfil en Proceso de Clasificación Oficial</strong><br>
-                    Tu registro ha sido recibido exitosamente. Para garantizar un torneo equitativo, el comité organizador debe asignar tu nivel de ranking inicial antes de habilitar tus categorías.<br><br>
+                    Tu registro ha sido recibido exitosamente. Para garantizar un torneo equitativo, el comité organizador debe validar tu Elo inicial antes de habilitar tus categorías.<br><br>
                     📌 <em>Por favor vuelve a consultar en unos minutos o contacta al administrador del torneo.</em>
                 </div>
 
@@ -259,12 +265,13 @@
     </div>
 
     <script>
-        const supabaseUrl = 'https://stytjtqshyupkyihurpd.supabase.co';
-        const supabaseKey = 'sb_publishable_vwjEpT0qRQv_giJV-oqLaA_dkDDCcR-';
+        // --- AQUÍ ESTÁN TUS NUEVAS CLAVES DE SUPABASE ---
+        const supabaseUrl = 'https://qgttcmcihifrvdwibjos.supabase.co';
+        const supabaseKey = 'sb_publishable_CGkriPfciqNprptcXx8ivA_2v_ktYn7';
         const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         let torneoActivo = null;
-        let ORG_ID = null; // EXTRAÍDO AUTOMÁTICAMENTE DEL TORNEO
+        let ORG_ID = null; 
         let todosLosJugadores = [], todasLasCategorias = [], todasLasInscripciones = [], todosLosClubs = [];
         let programacionCategoriasNube = [];
         let categoriasCerradasSet = new Set(); 
@@ -294,7 +301,7 @@
 
             if (torneoData && torneoData.length > 0) {
                 torneoActivo = torneoData[0];
-                ORG_ID = torneoActivo.organizador_id; // MAGIA: AQUÍ AUTO-DETECTA EL DUEÑO DEL TORNEO
+                ORG_ID = torneoActivo.organizador_id; 
                 
                 document.getElementById('nombre-torneo-header').innerText = torneoActivo.nombre;
 
@@ -308,7 +315,6 @@
                 programacionCategoriasNube = progData || [];
             } else {
                 document.getElementById('nombre-torneo-header').innerText = "Sin Torneo Activo";
-                alert("No se encontró el torneo especificado.");
                 return;
             }
 
@@ -329,7 +335,7 @@
                 clienteSupabase.from('jugadores').select('*').eq('organizador_id', ORG_ID).order('nombre', { ascending: true }),
                 clienteSupabase.from('categorias').select('*').eq('organizador_id', ORG_ID).order('puntos_minimos', { ascending: true }),
                 clienteSupabase.from('inscripciones').select('*').eq('torneo_id', torneoActivo.id).eq('organizador_id', ORG_ID),
-                clienteSupabase.from('clubs').select('*').eq('organizador_id', ORG_ID).order('nombre', { ascending: true })
+                clienteSupabase.from('clubes').select('*').eq('organizador_id', ORG_ID).order('nombre', { ascending: true })
             ]);
 
             todosLosJugadores = resJugadores.data || [];
@@ -383,7 +389,7 @@
                 filtrados.forEach(j => {
                     let opt = document.createElement('option');
                     opt.value = j.id; 
-                    opt.textContent = `${j.nombre} (${j.club || 'Sin Club'}) - ${j.puntos_ranking} pts`;
+                    opt.textContent = `${j.nombre} (${j.club || 'Sin Club'}) - Elo: ${j.puntos_ranking}`;
                     selectJugador.appendChild(opt);
                 });
             }
@@ -425,7 +431,7 @@
 
             if (pts === 0) {
                 infoPuntos.innerText = `Estado: Perfil Nuevo (Sin Clasificación Oficial) | Club: ${jugador.club || 'Sin Club'}`;
-                selectCategoria.innerHTML = '<option value="" disabled selected>⏳ En espera de asignación de ranking por el Administrador</option>';
+                selectCategoria.innerHTML = '<option value="" disabled selected>⏳ En espera de asignación de Elo por el Administrador</option>';
                 selectCategoria.disabled = true;
                 btnInscribir.disabled = true;
                 cajaNip.style.display = 'none';
@@ -435,7 +441,7 @@
             }
 
             tarjetaPendiente.style.display = 'none';
-            infoPuntos.innerText = `Ranking actual: ${pts} pts | Club: ${jugador.club || 'Sin Club'}`;
+            infoPuntos.innerText = `Elo actual: ${pts} | Club: ${jugador.club || 'Sin Club'}`;
 
             const misInscripciones = todasLasInscripciones.filter(ins => ins.jugador_id == idSeleccionado).map(ins => ins.categoria_id);
             if (misInscripciones.length > 0) {
@@ -517,6 +523,8 @@
 
         async function registrarNuevoJugador() {
             const nombre = document.getElementById('reg-nombre').value.trim();
+            const elo = parseInt(document.getElementById('reg-elo').value) || 0;
+            const fideId = document.getElementById('reg-fide').value.trim();
             const club = document.getElementById('reg-club').value;
             const nip = document.getElementById('reg-nip').value.trim();
 
@@ -528,14 +536,16 @@
             const { data, error } = await clienteSupabase.from('jugadores').insert([{
                 nombre: nombre,
                 club: club,
-                puntos_ranking: 0,
+                puntos_ranking: elo,
+                elo_fide: elo,
+                fide_id: fideId,
                 nip_seguridad: nip,
                 organizador_id: ORG_ID
             }]).select();
 
-            if (error || !data) { alert("Error al registrar jugador."); return; }
+            if (error || !data) { alert("Error al registrar jugador: " + error.message); return; }
 
-            alert(`✅ ¡Bienvenido ${nombre}!\n\nTu perfil fue creado con éxito.\n\n⏳ Para mantener un torneo equitativo, el administrador asignará tus puntos de ranking oficial en breve. Una vez asignados podrás elegir tu categoría.`);
+            alert(`✅ ¡Bienvenido ${nombre}!\n\nTu perfil fue creado con un Elo de ${elo}.\n\n⏳ El administrador validará tu perfil para habilitar las categorías.`);
             
             cerrarNuevoJugador();
             document.getElementById('buscador').value = nombre;
