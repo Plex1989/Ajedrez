@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Torneos - Pixel Studio</title>
+    <title>Mis Torneos - Pixel Studio Ajedrez</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -85,7 +85,7 @@
 
     <div class="main-content">
 
-        <!-- MÓDULO DE AUTENTICACIÓN (SOLO INGRESO) -->
+        <!-- MÓDULO DE AUTENTICACIÓN -->
         <div id="panel-login" class="panel-3d" style="border-bottom: 5px solid #0ea5e9; text-align: center; max-width: 450px; margin: 40px auto;">
             <img src="https://cdn-icons-png.flaticon.com/512/3233/3233483.png" style="width:64px; margin: 0 auto 15px auto; filter: drop-shadow(0 0 10px rgba(14,165,233,0.5));">
             <h2 style="border:none; margin-bottom:5px; font-size:18px;">ACCESO ORGANIZADORES</h2>
@@ -101,7 +101,7 @@
             </div>
         </div>
 
-        <!-- MÓDULOS DEL SISTEMA (SOLO VISIBLES AL INICIAR SESIÓN) -->
+        <!-- MÓDULOS DEL SISTEMA -->
         <div id="panel-sistema" style="display: none;">
             
             <div class="panel-3d" style="border-bottom: 5px solid #8b5cf6;">
@@ -130,7 +130,7 @@
                         <div class="kpi-val" id="kpi-pendientes-pago">0</div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-lbl">⚠️ Esperando Ranking</div>
+                        <div class="kpi-lbl">⚠️ Esperando Elo FIDE</div>
                         <div class="kpi-val" id="kpi-sin-ranking">0</div>
                     </div>
                 </div>
@@ -142,7 +142,7 @@
                 <div class="form-row">
                     <div class="input-group">
                         <label>Nombre del Torneo</label>
-                        <input type="text" id="t-nombre" placeholder="Ej. Gran Torneo Estatal 2026">
+                        <input type="text" id="t-nombre" placeholder="Ej. Abierto de Ajedrez 2026">
                     </div>
                     <div class="input-group">
                         <label>Fecha de Inicio del Evento</label>
@@ -151,12 +151,12 @@
                 </div>
                 <div class="form-row">
                     <div class="input-group">
-                        <label>Sede / Gimnasio</label>
-                        <input type="text" id="t-sede" placeholder="Ej. Complejo Deportivo Central">
+                        <label>Sede / Club</label>
+                        <input type="text" id="t-sede" placeholder="Ej. Club Central de Ajedrez">
                     </div>
                     <div class="input-group">
-                        <label>N° de Mesas Disponibles en Sede</label>
-                        <input type="number" id="t-mesas" value="5" min="1">
+                        <label>N° de Tableros Disponibles</label>
+                        <input type="number" id="t-mesas" value="10" min="1">
                     </div>
                 </div>
                 <div style="margin-top: 20px; display: flex; gap: 10px;">
@@ -176,8 +176,9 @@
     </div>
 
     <script>
-        const supabaseUrl = 'https://stytjtqshyupkyihurpd.supabase.co';
-        const supabaseKey = 'sb_publishable_vwjEpT0qRQv_giJV-oqLaA_dkDDCcR-';
+        // --- AQUÍ ESTÁN TUS NUEVAS CLAVES DE SUPABASE ---
+        const supabaseUrl = 'https://qgttcmcihifrvdwibjos.supabase.co';
+        const supabaseKey = 'sb_publishable_CGkriPfciqNprptcXx8ivA_2v_ktYn7';
         const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         let torneosCargados = [];
@@ -363,7 +364,7 @@
                         
                         <div class="t-info"><i class="fa-regular fa-calendar"></i> ${t.fecha_evento || 'Sin fecha'}</div>
                         <div class="t-info"><i class="fa-solid fa-location-dot"></i> ${t.lugar_evento || 'Sin sede'}</div>
-                        <div class="t-info" style="color:#38bdf8;"><i class="fa-solid fa-table-tennis-paddle-ball" style="color:#38bdf8;"></i> Mesas Gimnasio: ${numMesas}</div>
+                        <div class="t-info" style="color:#38bdf8;"><i class="fa-solid fa-chess-board" style="color:#38bdf8;"></i> Tableros Sede: ${numMesas}</div>
 
                         <div class="acciones-torneo">
                             ${mainBtn}
@@ -482,7 +483,7 @@
             if (!activoId) { alert("Selecciona un torneo activo primero."); return; }
             const t = torneosCargados.find(item => item.id == activoId);
             const urlTransmision = `${window.location.origin}/espectador.html?torneo=${activoId}`;
-            const texto = `🔴 *¡CARTELERA EN VIVO!* 🔴\n\n🏆 Torneo: *${t ? t.nombre : 'Torneo'}*\n\nSigue los marcadores en tiempo real de todas las mesas ingresando aquí:\n👉 ${urlTransmision}`;
+            const texto = `🔴 *¡CARTELERA EN VIVO!* 🔴\n\n🏆 Torneo: *${t ? t.nombre : 'Torneo'}*\n\nSigue los marcadores en tiempo real de todos los tableros ingresando aquí:\n👉 ${urlTransmision}`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
         }
 
@@ -491,7 +492,7 @@
             if (!activoId) { alert("Selecciona un torneo activo primero."); return; }
             const t = torneosCargados.find(item => item.id == activoId);
             const urlPublica = `${window.location.origin}/index.html?torneo=${activoId}`;
-            let textoWS = `🏓 *¡INSCRIPCIONES ABIERTAS!* 🏓\n\n🏆 Torneo: *${t ? t.nombre : 'Torneo'}*\n\nReserva tu lugar en línea ingresando aquí:\n👉 ${urlPublica}\n\n¡Te esperamos! 🏆`;
+            let textoWS = `♟️ *¡INSCRIPCIONES ABIERTAS!* ♟️\n\n🏆 Torneo: *${t ? t.nombre : 'Torneo'}*\n\nReserva tu lugar en línea ingresando aquí:\n👉 ${urlPublica}\n\n¡Te esperamos! 🏆`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textoWS)}`, '_blank');
         }
     </script>
